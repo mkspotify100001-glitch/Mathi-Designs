@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IG12UX — Upsell & Cross-Sell POS Sandbox (Final)</title>
+  <style>
+    :root{--bg:#f6f8fa;--muted:#6b7280;--accent:#06b6d4}
+    *{box-sizing:border-box;font-family:Inter, 'Segoe UI', Roboto, Arial, sans-serif}
+    html,body{height:100%;margin:0;background:var(--bg);color:#0b1220}
+
+    .topbar{height:64px;background:#fff;border-bottom:1px solid #e6edf3;display:flex;align-items:center;justify-content:space-between;padding:8px 18px}
+    .top-left{display:flex;align-items:center;gap:12px}
+    .logo{width:44px;height:44px;border-radius:6px;background:linear-gradient(180deg,#1fb37a,#0aa36a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+    .store{font-size:18px;font-weight:700}
+    .top-right{display:flex;align-items:center;gap:14px;color:var(--muted)}
+
+    .container{display:flex;height:calc(100vh - 64px)}
+    .leftbar{width:76px;background:#fff;border-right:1px solid #e6edf3;display:flex;flex-direction:column;align-items:center;padding-top:18px;gap:14px}
+    .icon{width:44px;height:44px;border-radius:8px;background:linear-gradient(180deg,#eef6f9,#e9f2f7);display:flex;align-items:center;justify-content:center}
+
+    .main{display:flex;flex:1;overflow:hidden}
+    .menu-col{flex:1;padding:18px 18px 18px 24px;overflow:auto}
+    .menu-toolbar{display:flex;gap:10px;margin-bottom:12px}
+    .pill{background:#fff;border:1px solid #e6edf3;padding:8px 12px;border-radius:20px;font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+    .tile{background:linear-gradient(180deg,#8b5e3c,#6b3e1d);color:#fff;padding:12px;border-radius:10px;min-height:58px;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+    /* check area */
+    .check-col{width:420px;background:#f3f5f9;border-left:1px solid #e6edf3;display:flex;flex-direction:column}
+    .check-header{background:linear-gradient(90deg,#6ea8d6,#b7d7f1);padding:10px 12px;color:#fff;display:flex;flex-direction:column}
+    .check-top{display:flex;justify-content:space-between;align-items:center}
+    .check-list{flex:1;overflow:auto;padding:12px}
+
+    .check-item{background:#fff;border:1px solid #e1e8ef;border-radius:8px;padding:8px;margin-bottom:10px}
+    .row-main{display:flex;justify-content:space-between;align-items:center}
+    .left{display:flex;gap:8px;align-items:center}
+    .qty{background:#f1f5f9;padding:6px 8px;border-radius:6px;font-weight:700}
+    .muted{color:var(--muted);font-size:13px}
+
+    .action-row{display:flex;gap:8px;margin-top:8px}
+    .action-btn{background:#fff;border:1px solid #d7e6ef;padding:6px 10px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px}
+    .action-btn.upsell{background:linear-gradient(90deg,#f7fff8,#e6ffec);border:1px solid #c9eed2}
+    .action-btn.cross{background:linear-gradient(90deg,#fff9f1,#fff3e6);border:1px solid #f0dcbc}
+
+    .pulse{
+      animation:pulseAnim 1.4s infinite ease-in-out;
+    }
+    @keyframes pulseAnim{
+      0%{box-shadow:0 0 0px rgba(0,200,120,0.0)}
+      50%{box-shadow:0 0 14px rgba(0,200,120,0.45)}
+      100%{box-shadow:0 0 0px rgba(0,200,120,0.0)}
+    }
+
+    .totals{padding:12px;border-top:1px solid #e6edf3;background:linear-gradient(180deg,#f9fbfe,#f3f6fb)}
+    .tot-row{display:flex;justify-content:space-between;padding:6px 0}
+
+    .keypad-wrapper{transition:all .25s ease;height:280px;overflow:hidden}
+    .keypad-collapsed{height:0px;padding:0 !important;margin:0 !important;border:none !important}
+
+    .keypad{padding:12px;background:#fff}
+    .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .key{background:#fff;border:1px solid #e6edf3;padding:18px;border-radius:10px;text-align:center;font-weight:700;font-size:16px}
+
+    .toggle-keypad{cursor:pointer;text-align:center;padding:8px;background:#e7eef9;border-top:1px solid #d0d7e2;font-weight:600}
+
+    .actions{display:flex;gap:8px;padding:12px;background:#fff;border-top:1px solid #e6edf3}
+
+    .lp-panel{position:fixed;right:440px;width:420px;background:#32343a;color:#fff;border-radius:10px;padding:12px;box-shadow:0 20px 60px rgba(0,0,0,.4);z-index:60}
+    .lp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .lp-item{background:#fff;color:#111;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;cursor:pointer}
+    .lp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .lp-close{background:#000;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="top-left">
+    <div class="logo">IG</div>
+    <div>
+      <div class="store">Sai Store #2 | Breakfast</div>
+      <div class="muted">Tasty Bites</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <div class="muted">28-11-2025 18:50:00</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="leftbar">
+    <div class="icon">🏠</div>
+    <div class="icon">👥</div>
+    <div class="icon">🧾</div>
+    <div class="icon">📈</div>
+    <div class="icon">⚙️</div>
+  </div>
+
+  <div class="main">
+    <div class="menu-col">
+      <div class="menu-toolbar">
+        <div class="pill">Salted Caramel</div>
+        <div class="pill">Peanut Butter</div>
+        <div class="pill">Liquid Chocolate</div>
+      </div>
+      <div class="grid" id="menuGrid"></div>
+    </div>
+
+    <div class="check-col">
+      <div class="check-header">
+        <div class="check-top">
+          <div>
+            <div style="font-weight:800">20618</div>
+            <div class="muted">Regular Check</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="check-list" id="checkList"></div>
+
+      <div class="totals">
+        <div class="tot-row"><div>Tax</div><div id="tax">6.61</div></div>
+        <div class="tot-row" style="font-weight:800"><div>Total</div><div id="orderTotal">0.00</div></div>
+      </div>
+
+      <div class="toggle-keypad" id="toggleKeypad">▲ Hide Keypad</div>
+      <div class="keypad-wrapper" id="keypadWrapper">
+        <div class="keypad">
+          <div class="numpad">
+            <div class="key">1</div><div class="key">2</div><div class="key">3</div>
+            <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+            <div class="key">7</div><div class="key">8</div><div class="key">9</div>
+            <div class="key">.</div><div class="key">0</div><div class="key">00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="btn">Quick Pay</div>
+        <div class="btn">Save</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upsell & Cross-sell Panel -->
+<div id="lp" class="lp-panel" style="display:none">
+  <div class="lp-header">
+    <div id="lpTitle">Upsell</div>
+    <div class="lp-close" id="lpClose">✕</div>
+  </div>
+  <div id="lpContent" class="lp-grid"></div>
+</div>
+
+<script>
+/* --------- MENU ITEMS ----------- */
+const MENU_ITEMS=[
+ {id:'magnum',title:'Magnum Chocolate',price:4.5,
+  upsell:[{id:'magnum_double',title:'Magnum Double Chocolate',price:5.5}],
+  cross:[{id:'straw',title:'Strawberry Milkshake',price:2.5},{id:'coke',title:'Coke',price:1.5}]
+ },
+ {id:'latte',title:'Latte',price:3.5,
+  upsell:[{id:'latte_large',title:'Large Latte',price:4.5}],
+  cross:[{id:'cookie',title:'Cookie',price:1.2}]
+ },
+ {id:'cookie',title:'Cookie',price:1.2,upsell:[],cross:[]},
+ {id:'straw',title:'Strawberry Milkshake',price:2.5,upsell:[],cross:[]},
+ {id:'coke',title:'Coke',price:1.5,upsell:[],cross:[]}
+];
+
+/* --------- ELEMENTS ----------- */
+const menuGrid=document.getElementById("menuGrid");
+const checkList=document.getElementById("checkList");
+const lp=document.getElementById("lp");
+const lpTitle=document.getElementById("lpTitle");
+const lpContent=document.getElementById("lpContent");
+const lpClose=document.getElementById("lpClose");
+const keypadWrapper=document.getElementById("keypadWrapper");
+const toggleKeypad=document.getElementById("toggleKeypad");
+
+function log(msg){}
+
+/* --------- MENU LOAD ----------- */
+MENU_ITEMS.concat(Array.from({length:25}).map((_,i)=>({id:'m'+i,title:'Item '+(i+1),price:1})))
+.forEach(it=>{
+ let el=document.createElement("div");
+ el.className="tile";
+ el.innerText=it.title;
+ el.onclick=()=>addItem(it);
+ menuGrid.appendChild(el);
+});
+
+/* --------- CHECK STATE ----------- */
+let CHECK=[];
+
+function addItem(it){
+ CHECK.push({...it,qty:1});
+ renderCheck();
+}
+
+function renderCheck(){
+ checkList.innerHTML="";
+
+ CHECK.forEach((it,idx)=>{
+
+  const box=document.createElement("div");
+  box.className="check-item";
+
+  box.innerHTML=`
+    <div class="row-main">
+      <div class="left">
+        <div class="qty">${it.qty}</div>
+        <div>
+          <div style="font-weight:700">${it.title}</div>
+          <div class="muted">@ ${it.price.toFixed(2)}</div>
+        </div>
+      </div>
+      <div style="font-weight:800">${(it.qty*it.price).toFixed(2)}</div>
+    </div>
+  `;
+
+  // ✅ SHOW UPS/CROSS for ALL items
+  const row=document.createElement("div");
+  row.className="action-row";
+
+  if ((it.upsell||[]).length>0){
+    const ups=document.createElement("div");
+    ups.className="action-btn upsell pulse";
+    ups.innerHTML=`<span>Upgrade</span>`;
+    ups.onclick=()=>openLp("upsell",idx, box);
+    row.appendChild(ups);
+  }
+
+  if ((it.cross||[]).length>0){
+    const cross=document.createElement("div");
+    cross.className="action-btn cross pulse";
+    cross.innerHTML=`<span>Suggestions</span>`;
+    cross.onclick=()=>openLp("cross",idx, box);
+    row.appendChild(cross);
+  }
+
+  if(row.children.length>0) box.appendChild(row);
+
+  checkList.appendChild(box);
+ });
+
+ updateTotals();
+}
+
+function updateTotals(){
+ const total=CHECK.reduce((a,b)=>a+b.qty*b.price,0);
+ document.getElementById("orderTotal").innerText=total.toFixed(2);
+}
+
+/* --------- UPS/CROSS PANEL ----------- */
+let currentIdx=null;
+
+function openLp(mode,idx,itemEl){
+ currentIdx=idx;
+ const rect = itemEl.getBoundingClientRect();
+ lp.style.top = (rect.top + window.scrollY) + "px";
+
+ lp.style.display="block";
+ lpContent.innerHTML="";
+ const line=CHECK[idx];
+
+ if(mode==="upsell"){
+   lpTitle.innerText="Upgrade";
+   (line.upsell||[]).forEach(u=>{
+     const el=document.createElement("div");
+     el.className="lp-item";
+     el.innerHTML=`<div style="font-weight:700">${u.title}</div><div class='muted'>${u.price.toFixed(2)}</div>`;
+     el.onclick=()=>applyUpsell(idx,u);
+     lpContent.appendChild(el);
+   });
+
+ } else {
+   lpTitle.innerText="Suggestions";
+   (line.cross||[]).forEach(c=>{
+     const el=document.createElement("div");
+     el.className="lp-item";
+     el.innerHTML=`<div style="font-weight:700">${c.title}</div><div class='muted'>${c.price.toFixed(2)}</div>`;
+     el.onclick=()=>applyCross(c);
+     lpContent.appendChild(el);
+   });
+ }
+}
+
+function applyUpsell(idx,u){
+ const o=CHECK[idx];
+ CHECK[idx]={...u,qty:o.qty,upsell:[],cross:[]};
+ renderCheck();
+ closeLp();
+}
+
+function applyCross(c){
+  CHECK.push({...c,qty:1});
+  renderCheck();
+}
+
+function closeLp(){
+ lp.style.display="none";
+ lpContent.innerHTML="";
+}
+
+lpClose.onclick=closeLp;
+
+/* --------- KEYPAD COLLAPSE ----------- */
+toggleKeypad.onclick=()=>{
+ if(keypadWrapper.classList.contains("keypad-collapsed")){
+   keypadWrapper.classList.remove("keypad-collapsed");
+   toggleKeypad.innerText="▲ Hide Keypad";
+ } else {
+   keypadWrapper.classList.add("keypad-collapsed");
+   toggleKeypad.innerText="▼ Show Keypad";
+ }
+};
+
+/* preload sample items */
+addItem(MENU_ITEMS[0]);
+addItem(MENU_ITEMS[1]);
+</script>
+
+</body>
+</html>
